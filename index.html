@@ -1,0 +1,147 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>بنك الأسئلة الذكي | الكلية التقنية للبنات بالخرج</title><style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#22383b;background:#f5faf9}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(110deg,#086e70,#188e92);color:white;padding:27px max(20px,calc((100% - 1100px)/2));}h1{margin:0 0 9px;font-size:27px}header p{margin:0;opacity:.93}main{max-width:1100px;margin:22px auto;padding:0 16px}.panel{background:white;border:1px solid #e5dff2;border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 5px 18px #34285d0b}h2{font-size:19px;margin:0 0 17px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:7px}label{font-weight:bold;font-size:14px}input,select,textarea{border:1px solid #d4cce3;border-radius:9px;padding:11px;font:inherit;background:white;color:#22383b;width:100%}textarea{min-height:140px;resize:vertical}.buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}button{font:inherit;border:0;border-radius:9px;padding:11px 16px;cursor:pointer;background:#087d80;color:white;font-weight:bold}button.secondary{background:#e7f5f3;color:#096e72}button.danger{background:#fff0f0;color:#9e3131}.hint{font-size:13px;color:#675f79;line-height:1.8}.status{background:#f0ebfb;border-radius:9px;padding:12px;margin:12px 0;white-space:pre-wrap}.q{border:1px solid #e1d9ee;border-radius:12px;padding:15px;margin:12px 0}.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.q textarea{min-height:65px}.answers{display:grid;gap:8px;margin:12px 0}.answer{display:flex;align-items:center;gap:8px}.answer input[type=radio]{width:auto}.answer input[type=text]{flex:1}.muted{color:#716983;font-size:13px}.notice{border-right:4px solid #b28a33;background:#fff9e8;padding:12px;line-height:1.9;border-radius:7px}.hidden{display:none}.count{font-weight:bold;color:#096e72}footer{text-align:center;padding:20px;color:#716983}@media(max-width:600px){h1{font-size:22px}.panel{padding:16px}}
+.quality{font-size:13px;color:#4d4470;margin-top:7px}.smallbtn{font-size:12px;padding:7px 10px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.notice strong{font-weight:700}.brand{display:flex;align-items:center;gap:22px;max-width:1100px;margin:auto}.brand img{width:135px;height:120px;object-fit:contain;background:white;border-radius:12px;padding:9px}.college{font-size:18px;font-weight:bold;margin-bottom:8px}.brand-note{font-size:12px;margin-top:10px;opacity:.88}a{color:#087d80;font-weight:bold}.guide-link{display:inline-block;padding:11px 16px;background:#e6f6f2;border-radius:9px;text-decoration:none}@media(max-width:600px){.brand{flex-direction:column;text-align:center}.brand img{width:115px;height:110px}}</style></head><body><header><div class="brand"><img src="tvtc-logo.png" alt="شعار المؤسسة العامة للتدريب التقني والمهني"><div><div class="college">الكلية التقنية للبنات بالخرج</div><h1>📚 بنك الأسئلة الذكي</h1><p>من المحاضرة إلى الاختبار في دقائق | منصة مساعدة مجانية للمدربات</p><p class="brand-note">نسخة تجريبية غير معتمدة رسميًا ولا ترتبط بأنظمة المؤسسة</p></div></div></header><main>
+<section class="panel"><h2>١. إضافة محتوى المحاضرة</h2><div class="grid"><div class="field"><label for="course">اسم المقرر</label><input id="course" placeholder="مثال: مهارات الحاسب"></div><div class="field"><label for="upload">رفع محاضرة</label><input id="upload" type="file" accept=".txt,.pdf,.docx,.pptx"></div></div><p class="hint">الملفات المدعومة: TXT وPDF النصي وDOCX وPPTX. ملفات PDF المصورة تحتاج OCR لاحقًا. تستخدم مكتبات خارجية عند فتح بعض الأنواع؛ لا ترفعي مواد سرية أو غير مصرح بمعالجتها.</p><label for="source">نص المحاضرة (يمكن لصقه مباشرة)</label><textarea id="source" placeholder="الصقي نص المحاضرة هنا، أو ارفعي ملفًا لاستخراج محتواه..."></textarea><div id="fileStatus" class="status" role="status">جاهز لاستقبال المحاضرة.</div></section>
+<section class="panel"><h2>٢. إعداد الأسئلة</h2><div class="grid"><div class="field"><label for="count">عدد الأسئلة المطلوب</label><input id="count" type="number" min="1" max="100" value="10"></div><div class="field"><label for="type">نوع الأسئلة</label><select id="type"><option value="mixed">متنوعة (اختيار متعدد + صح وخطأ + إكمال الفراغ + توصيل)</option><option value="mc">اختيار متعدد</option><option value="tf">صح وخطأ</option><option value="fib">إكمال الفراغ</option><option value="match">توصيل</option></select></div><div class="field"><label for="difficulty">مستوى الصعوبة</label><select id="difficulty"><option>سهل</option><option selected>متوسط</option><option>صعب</option></select></div></div><div class="buttons"><button id="generate">✨ إنشاء الأسئلة مجانًا</button><button class="secondary" id="example">تحميل مثال للتجربة</button><button class="secondary" id="save">حفظ العمل محليًا</button><button class="secondary" id="restore">استعادة آخر حفظ</button></div><p class="notice">إنشاء مجاني لأسئلة أولية من نص المحاضرة دون إرسال النص إلى خدمة ذكاء اصطناعي. راجعي الأسئلة والإجابات قبل استخدامها. لا ترفعي ملفات تتضمن بيانات شخصية أو سرية.</p></section>
+<section class="panel"><div class="qhead"><h2>٣. مراجعة الأسئلة وتعديلها</h2><span class="count" id="total">0 سؤال</span></div><div id="questions"><p class="muted">لم تُنشأ أسئلة بعد.</p></div><div class="buttons"><button class="secondary" id="addMc">+ سؤال اختيار متعدد</button><button class="secondary" id="addTf">+ سؤال صح وخطأ</button><button class="secondary" id="addFib">+ إكمال الفراغ</button><button class="secondary" id="addMatch">+ توصيل</button></div></section>
+<section class="panel"><h2>٤. تصدير بنك الأسئلة</h2><p class="hint">يتم التصدير من الأسئلة الموجودة أعلاه بعد مراجعتها. تصدير Blackboard TXT يدعم في هذه النسخة أسئلة الاختيار المتعدد والصح والخطأ فقط؛ وتُستبعد أسئلة الإكمال والتوصيل من هذا الملف مع تنبيه واضح. يمكن تصدير جميع الأنواع بصيغة GIFT أو CSV عام، لكن توافق منصة تقني غير مؤكد.</p><div class="buttons"><button id="bb">تصدير Blackboard TXT</button><button id="gift">تصدير GIFT (للتجربة على تقني)</button><button id="csv">تصدير CSV (قالب عام)</button><button class="secondary" id="json">نسخة احتياطية JSON</button></div><p class="notice">تنبيه توافق: GIFT صيغة شائعة في Moodle، وCSV ملف بيانات عام، وليسا قالب استيراد مؤكدًا لمنصة تقني. اختبري الاستيراد في بيئة تجريبية قبل أي استخدام رسمي. يجب مطابقة قالب تقني الفعلي واختبار الاستيراد قبل الاستخدام الرسمي.</p><div id="exportStatus" class="status" role="status">لم يتم تصدير أي ملف بعد.</div></section>
+<section class="panel"><h2>٥. دليل استخدام المدربات</h2><p>تعرفي على خطوات رفع المحاضرات، مراجعة الإجابات، وتصدير الأسئلة للاختبار التجريبي.</p><a class="guide-link" href="guide.html" target="_blank" rel="noopener">📖 فتح دليل استخدام المدربة</a></section><section class="panel"><h2>٦. معلومات مهمة</h2><p>المنصة مجانية ولا تحتاج مفتاح API أو تسجيل دخول. توليد الأسئلة يتم بقواعد محلية مبسطة مع تقليل التكرار، ولا يُعد ذكاءً اصطناعيًا توليديًا. جودة الأسئلة تعتمد على وجود تعريفات واضحة في المحاضرة. استيراد Blackboard TXT جُرّب بنجاح في اختبار تجريبي، أما ملفات تقني GIFT وCSV فتحتاج تجربة التوافق قبل الاستخدام الرسمي. لا يوجد اتصال مباشر بأي نظام تعليمي.</p></section></main><footer>بنك الأسئلة الذكي | الكلية التقنية للبنات بالخرج<br>أداة تجريبية مساعدة غير معتمدة رسميًا • احفظي نسخة احتياطية من عملك</footer>
+<script>
+const $=id=>document.getElementById(id), qs=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clean=s=>String(s??'').replace(/\\s+/g,' ').trim();
+function status(s){$('fileStatus').textContent=s}
+function safeName(){return ($('course').value.trim()||'question_bank').replace(/[^\\p{L}\\p{N}_-]+/gu,'_').slice(0,50)}
+function download(name,content,type='text/plain;charset=utf-8'){let blob=new Blob(['\\ufeff',content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);$('exportStatus').textContent='تم تنزيل: '+name}
+function kindLabel(q){return {mc:'اختيار متعدد',tf:'صح وخطأ',fib:'إكمال الفراغ',match:'توصيل'}[q.type]||q.type}
+function render(){
+ const host=$('questions');$('total').textContent=qs.length+' سؤال';
+ if(!qs.length){host.innerHTML='<p class="muted">لم تُنشأ أسئلة بعد.</p>';return}
+ host.innerHTML=qs.map((q,i)=>{
+ let answer='';
+ if(q.type==='mc'||q.type==='tf')answer='<div class="answers">'+q.options.map((o,j)=>'<div class="answer"><input type="radio" aria-label="تحديد الإجابة الصحيحة" name="correct_'+i+'" data-correct="'+i+'" value="'+j+'" '+(q.correct===j?'checked':'')+'><input type="text" aria-label="نص الخيار" data-i="'+i+'" data-option="'+j+'" value="'+esc(o)+'" '+(q.type==='tf'?'readonly':'')+'></div>').join('')+'</div><p class="muted">حددي الإجابة الصحيحة بالدائرة.</p>';
+ if(q.type==='fib')answer='<label>الإجابة الصحيحة للفراغ</label><input type="text" data-i="'+i+'" data-key="answer" value="'+esc(q.answer)+'"><p class="muted">اكتبي في السؤال مكان الإجابة بالشكل: _____</p>';
+ if(q.type==='match')answer='<p class="muted">عدلي كل مفهوم وما يقابله. عند التصدير بصيغة GIFT تُحوَّل الأزواج إلى سؤال توصيل.</p>'+q.pairs.map((p,j)=>'<div class="pair"><input type="text" aria-label="المفهوم" data-i="'+i+'" data-pair="'+j+'" data-side="left" value="'+esc(p.left)+'"><input type="text" aria-label="المطابقة" data-i="'+i+'" data-pair="'+j+'" data-side="right" value="'+esc(p.right)+'"></div>').join('')+'<button class="secondary smallbtn" data-addpair="'+i+'">+ إضافة زوج</button>';
+ return '<article class="q"><div class="qhead"><strong>السؤال '+(i+1)+' — '+kindLabel(q)+'</strong><button class="danger" data-del="'+i+'">حذف</button></div><label>نص السؤال</label><textarea data-i="'+i+'" data-key="text">'+esc(q.text)+'</textarea>'+answer+'</article>'
+ }).join('');
+}
+$('questions').addEventListener('input',e=>{
+ let t=e.target,i=Number(t.dataset.i);if(!Number.isInteger(i)||!qs[i])return;
+ if(t.dataset.key==='text')qs[i].text=t.value;
+ if(t.dataset.key==='answer')qs[i].answer=t.value;
+ if(t.dataset.option!==undefined)qs[i].options[Number(t.dataset.option)]=t.value;
+ if(t.dataset.pair!==undefined)qs[i].pairs[Number(t.dataset.pair)][t.dataset.side]=t.value;
+});
+$('questions').addEventListener('change',e=>{let t=e.target;if(t.dataset.correct!==undefined)qs[Number(t.dataset.correct)].correct=Number(t.value)});
+$('questions').addEventListener('click',e=>{let t=e.target;if(t.dataset.del!==undefined){qs.splice(Number(t.dataset.del),1);render()}if(t.dataset.addpair!==undefined){qs[Number(t.dataset.addpair)].pairs.push({left:'',right:''});render()}});
+function add(q){qs.push(q);render()}
+$('addMc').onclick=()=>add({type:'mc',text:'اكتبي السؤال هنا',options:['الإجابة الصحيحة','بديل 1','بديل 2','بديل 3'],correct:0});
+$('addTf').onclick=()=>add({type:'tf',text:'اكتبي عبارة صح أو خطأ هنا',options:['صح','خطأ'],correct:0});
+$('addFib').onclick=()=>add({type:'fib',text:'أكملي الفراغ: _____',answer:''});
+$('addMatch').onclick=()=>add({type:'match',text:'صلي كل مفهوم بالتعريف المناسب',pairs:[{left:'المفهوم الأول',right:'تعريفه'},{left:'المفهوم الثاني',right:'تعريفه'}]});
+$('example').onclick=()=>{$('course').value='أساسيات الحاسب';$('source').value='قاعدة البيانات هي مجموعة منظمة من المعلومات. الشبكة هي مجموعة أجهزة متصلة لتبادل البيانات. المتصفح هو برنامج يستخدم لعرض صفحات الويب. نظام التشغيل هو برنامج يدير موارد الحاسب. الذاكرة العشوائية هي ذاكرة مؤقتة لتخزين البيانات أثناء التشغيل.';status('تم تحميل مثال تجريبي؛ اضغطي إنشاء الأسئلة مجانًا.')};
+function facts(text){return text.split(/[\\n.。؛!?]+/).map(clean).filter(x=>x.length>=18&&x.length<=350)}
+function extractDefs(fs){return fs.map(s=>{let m=s.match(/^(.{2,75}?)\\s+(?:هو|هي|يعني|تعني|عبارة عن|هو عبارة عن|هي عبارة عن)\\s+(.{5,240})$/);return m?{term:clean(m[1]),def:clean(m[2]),original:s}:null}).filter(Boolean)}
+function uniq(a,key){let seen=new Set();return a.filter(x=>{let k=key(x).replace(/[\\s،؛:,.]+/g,'').toLowerCase();if(seen.has(k))return false;seen.add(k);return true})}
+$('generate').onclick=()=>{
+ let fs=uniq(facts($('source').value),x=>x),n=Math.min(100,Math.max(1,Number($('count').value)||10));
+ if(!fs.length){alert('أضيفي نص محاضرة يحتوي على جمل واضحة أولًا.');return}
+ let defs=uniq(extractDefs(fs),x=>x.term);
+ let pool=defs.length?defs:fs.map((s,i)=>({term:'المفهوم '+(i+1),def:s,original:s}));
+ let type=$('type').value,types=type==='mixed'?['mc','tf','fib','match']:[type],generated=[],seen=new Set();
+ // Generate at most one question per concept and type before repeating.
+ for(let pass=0;pass<types.length&&generated.length<n;pass++){
+   for(let i=0;i<pool.length&&generated.length<n;i++){
+     let p=pool[i],kind=types[(i+pass)%types.length],key=kind+'|'+p.term;
+     if(seen.has(key))continue;seen.add(key);
+     if(kind==='mc'){
+       let others=uniq(pool.filter(x=>x.term!==p.term&&x.def!==p.def),x=>x.def).slice(0,3).map(x=>x.def);
+       if(others.length<3)continue; // No fabricated distractors
+       let options=[p.def,...others],correct=(i+pass)%4;
+       options.splice(0,1);options.splice(correct,0,p.def);
+       generated.push({type:'mc',text:defs.length?'ما المقصود بـ «'+p.term+'»؟':'أي عبارة تصف المحتوى الوارد في المحاضرة؟',options,correct});
+     }else if(kind==='tf'){
+       let falseStmt=defs.length>1&&i%2===1,other=pool[(i+1)%pool.length];
+       generated.push({type:'tf',text:falseStmt?p.term+' هو '+other.def:p.original,options:['صح','خطأ'],correct:falseStmt?1:0});
+     }else if(kind==='fib'){
+       if(!defs.length)continue;
+       generated.push({type:'fib',text:'أكملي الفراغ: '+p.term+' هو _____',answer:p.def});
+     }else if(kind==='match'){
+       if(defs.length<2)continue;
+       let subset=[p,pool[(i+1)%pool.length]];
+       generated.push({type:'match',text:'صلي كل مفهوم بتعريفه الصحيح',pairs:subset.map(x=>({left:x.term,right:x.def}))});
+     }
+   }
+ }
+ qs.splice(0,qs.length,...generated);render();
+ let note='تم إنشاء '+qs.length+' سؤالًا مختلفًا مبدئيًا من أصل '+n+' مطلوبًا. راجعي الإجابات قبل الاستخدام.';
+ if(qs.length<n)note+=' لم نُكمل العدد لتجنب التكرار أو اختراع خيارات خاطئة؛ أضيفي تعريفات أكثر أو اختاري نوعًا آخر.';
+ status(note);
+ if(qs.length)$('questions').scrollIntoView({behavior:'smooth'});
+};
+function validate(items=qs){
+ if(!items.length){alert('أنشئي أو أضيفي سؤالًا أولًا.');return false}
+ for(let i=0;i<items.length;i++){let q=items[i],ok=clean(q.text);
+ if(q.type==='mc'||q.type==='tf')ok=ok&&q.options.every(clean)&&q.correct>=0&&q.correct<q.options.length;
+ else if(q.type==='fib')ok=ok&&clean(q.answer);
+ else if(q.type==='match')ok=ok&&q.pairs.length>=2&&q.pairs.every(p=>clean(p.left)&&clean(p.right));
+ else ok=false;
+ if(!ok){alert('راجعي السؤال رقم '+(qs.indexOf(q)+1)+' وأكملي بياناته.');return false}
+ }return true;
+}
+const tabSafe=s=>String(s).replace(/[\\t\\r\\n]+/g,' ').trim();
+$('bb').onclick=()=>{
+ let eligible=qs.filter(q=>q.type==='mc'||q.type==='tf'),skipped=qs.length-eligible.length;
+ if(!validate(eligible))return;
+ let lines=eligible.map(q=>q.type==='tf'?['TF',tabSafe(q.text),q.correct===0?'true':'false'].join('\\t'):['MC',tabSafe(q.text),...q.options.flatMap((o,i)=>[tabSafe(o),i===q.correct?'correct':'incorrect'])].join('\\t'));
+ download(safeName()+'_Blackboard.txt',lines.join('\\r\\n'));
+ if(skipped)$('exportStatus').textContent+=' | تنبيه: تم استبعاد '+skipped+' سؤال إكمال/توصيل من Blackboard TXT؛ استخدمي GIFT أو CSV لحفظها.';
+};
+function giftEscape(s){return String(s).replace(/([~=#{}:\\\\])/g,'\\\\$1').replace(/[\\r\\n]+/g,' ')}
+$('gift').onclick=()=>{
+ if(!validate())return;
+ let out=qs.map((q,i)=>{
+ let stem='::سؤال '+(i+1)+'::'+giftEscape(q.text);
+ if(q.type==='tf')return stem+' {'+(q.correct===0?'TRUE':'FALSE')+'}';
+ if(q.type==='fib')return stem+' {='+giftEscape(q.answer)+'}';
+ if(q.type==='match')return stem+' {\\n'+q.pairs.map(p=>'='+giftEscape(p.left)+' -> '+giftEscape(p.right)).join('\\n')+'\\n}';
+ return stem+' {\\n'+q.options.map((o,j)=>(j===q.correct?'=':'~')+giftEscape(o)).join('\\n')+'\\n}';
+ }).join('\\n\\n');
+ download(safeName()+'_GIFT_unverified.txt',out);
+ $('exportStatus').textContent+=' | توافق GIFT مع تقني غير مؤكد؛ اختبري الملف أولًا.';
+};
+const csvCell=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+$('csv').onclick=()=>{
+ if(!validate())return;
+ let rows=[['type','question','option1','option2','option3','option4','correct_option','answer','matching_pairs','difficulty']];
+ qs.forEach(q=>rows.push([q.type,q.text,...Array.from({length:4},(_,i)=>q.options?.[i]||''),q.type==='mc'||q.type==='tf'?q.correct+1:'',q.answer||'',q.type==='match'?JSON.stringify(q.pairs):'',$('difficulty').value]));
+ download(safeName()+'_generic_unverified.csv',rows.map(r=>r.map(csvCell).join(',')).join('\\r\\n'),'text/csv;charset=utf-8');
+ $('exportStatus').textContent+=' | CSV عام وليس قالب استيراد رسمي لتقني.';
+};
+$('json').onclick=()=>{if(validate())download(safeName()+'_backup.json',JSON.stringify({course:$('course').value,source:$('source').value,questions:qs},null,2),'application/json')};
+$('save').onclick=()=>{try{localStorage.setItem('smart_qbank_v3',JSON.stringify({course:$('course').value,source:$('source').value,questions:qs}));status('تم الحفظ على هذا المتصفح فقط. نزلي نسخة JSON احتياطية أيضًا.')}catch(e){status('تعذر الحفظ: '+e.message)}};
+$('restore').onclick=()=>{try{let s=localStorage.getItem('smart_qbank_v3')||localStorage.getItem('smart_qbank_v1');if(!s){status('لا يوجد حفظ سابق.');return}let d=JSON.parse(s);$('course').value=d.course||'';$('source').value=d.source||'';qs.splice(0,qs.length,...(Array.isArray(d.questions)?d.questions:[]));render();status('تمت استعادة الحفظ.')}catch(e){status('تعذرت الاستعادة: '+e.message)}};
+function loadScript(src){return new Promise((resolve,reject)=>{let s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل مكتبة معالجة الملف. تأكدي من الاتصال بالإنترنت.'));document.head.appendChild(s)})}
+$('upload').onchange=async e=>{
+ let f=e.target.files[0];if(!f)return;status('جارٍ قراءة الملف '+f.name+' ...');
+ try{
+ let ext=f.name.split('.').pop().toLowerCase(),t='';
+ if(ext==='txt')t=await f.text();
+ else if(ext==='pdf'){
+ if(!window.pdfjsLib)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ let pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+ for(let i=1;i<=pdf.numPages;i++){let page=await pdf.getPage(i),c=await page.getTextContent();t+='\\n'+c.items.map(x=>x.str).join(' ')}
+ }else if(ext==='docx'){
+ if(!window.mammoth)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js');
+ t=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
+ }else if(ext==='pptx'){
+ if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+ let zip=await JSZip.loadAsync(await f.arrayBuffer()),slides=Object.keys(zip.files).filter(x=>/^ppt\\/slides\\/slide\\d+\\.xml$/.test(x)).sort((a,b)=>Number(a.match(/slide(\\d+)/)[1])-Number(b.match(/slide(\\d+)/)[1]));
+ for(let slide of slides){let xml=await zip.file(slide).async('string'),doc=new DOMParser().parseFromString(xml,'application/xml');t+='\\n'+Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','t')).map(x=>x.textContent).join(' ')}
+ }else throw Error('نوع الملف غير مدعوم');
+ $('source').value=t.trim();
+ status(t.trim()?'تم استخراج '+t.length+' حرفًا من الملف. راجعي النص قبل إنشاء الأسئلة.':'لم يُستخرج نص. قد يكون الملف مصورًا أو خاليًا من النص القابل للقراءة.');
+ }catch(err){status('تعذرت قراءة الملف: '+err.message)}
+};
+</script></body></html>
