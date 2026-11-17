@@ -9,10 +9,10 @@
 <script>
 const $=id=>document.getElementById(id), qs=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const clean=s=>String(s??'').replace(/\\s+/g,' ').trim();
+const clean=s=>String(s??'').replace(/\s+/g,' ').trim();
 function status(s){$('fileStatus').textContent=s}
-function safeName(){return ($('course').value.trim()||'question_bank').replace(/[^\\p{L}\\p{N}_-]+/gu,'_').slice(0,50)}
-function download(name,content,type='text/plain;charset=utf-8'){let blob=new Blob(['\\ufeff',content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);$('exportStatus').textContent='تم تنزيل: '+name}
+function safeName(){return ($('course').value.trim()||'question_bank').replace(/[^\p{L}\p{N}_-]+/gu,'_').slice(0,50)}
+function download(name,content,type='text/plain;charset=utf-8'){let blob=new Blob(['\ufeff',content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);$('exportStatus').textContent='تم تنزيل: '+name}
 function kindLabel(q){return {mc:'اختيار متعدد',tf:'صح وخطأ',fib:'إكمال الفراغ',match:'توصيل'}[q.type]||q.type}
 function render(){
  const host=$('questions');$('total').textContent=qs.length+' سؤال';
@@ -40,42 +40,77 @@ $('addTf').onclick=()=>add({type:'tf',text:'اكتبي عبارة صح أو خط
 $('addFib').onclick=()=>add({type:'fib',text:'أكملي الفراغ: _____',answer:''});
 $('addMatch').onclick=()=>add({type:'match',text:'صلي كل مفهوم بالتعريف المناسب',pairs:[{left:'المفهوم الأول',right:'تعريفه'},{left:'المفهوم الثاني',right:'تعريفه'}]});
 $('example').onclick=()=>{$('course').value='أساسيات الحاسب';$('source').value='قاعدة البيانات هي مجموعة منظمة من المعلومات. الشبكة هي مجموعة أجهزة متصلة لتبادل البيانات. المتصفح هو برنامج يستخدم لعرض صفحات الويب. نظام التشغيل هو برنامج يدير موارد الحاسب. الذاكرة العشوائية هي ذاكرة مؤقتة لتخزين البيانات أثناء التشغيل.';status('تم تحميل مثال تجريبي؛ اضغطي إنشاء الأسئلة مجانًا.')};
-function facts(text){return text.split(/[\\n.。؛!?]+/).map(clean).filter(x=>x.length>=18&&x.length<=350)}
-function extractDefs(fs){return fs.map(s=>{let m=s.match(/^(.{2,75}?)\\s+(?:هو|هي|يعني|تعني|عبارة عن|هو عبارة عن|هي عبارة عن)\\s+(.{5,240})$/);return m?{term:clean(m[1]),def:clean(m[2]),original:s}:null}).filter(Boolean)}
-function uniq(a,key){let seen=new Set();return a.filter(x=>{let k=key(x).replace(/[\\s،؛:,.]+/g,'').toLowerCase();if(seen.has(k))return false;seen.add(k);return true})}
+function facts(text){
+ return uniq(String(text).replace(/\r/g,'\n').split(/[\n.。؛!?]+/).map(clean)
+   .filter(x=>x.length>=22&&x.length<=300&&!/^(المحاضرة|الأهداف|الاهداف|المحتويات|شكراً)/.test(x)),x=>x);
+}
+function extractDefs(fs){
+ return fs.map(s=>{
+  let m=s.match(/^(.{2,65}?)\s+(?:هو عبارة عن|هي عبارة عن|عبارة عن|هو|هي|يعني|تعني)\s+(.{8,230})$/);
+  if(!m)return null;
+  let term=clean(m[1]),def=clean(m[2]);
+  return term.length<=65&&def.length>=12?{term,def,original:s}:null;
+ }).filter(Boolean);
+}
+function normalize(s){return clean(s).toLowerCase().replace(/[\u064b-\u065f\u0670]/g,'').replace(/[إأآ]/g,'ا').replace(/ة/g,'ه').replace(/[^\p{L}\p{N}]+/gu,'');}
+function uniq(a,key){let seen=new Set();return a.filter(x=>{let k=normalize(key(x));if(!k||seen.has(k))return false;seen.add(k);return true})}
+function similar(a,b){
+ let x=normalize(a),y=normalize(b);
+ if(x===y)return true;
+ if(Math.min(x.length,y.length)<25)return false;
+ if(x.includes(y)||y.includes(x))return Math.min(x.length,y.length)/Math.max(x.length,y.length)>.82;
+ return false;
+}
 $('generate').onclick=()=>{
- let fs=uniq(facts($('source').value),x=>x),n=Math.min(100,Math.max(1,Number($('count').value)||10));
+ let fs=facts($('source').value),n=Math.min(100,Math.max(1,Number($('count').value)||10));
  if(!fs.length){alert('أضيفي نص محاضرة يحتوي على جمل واضحة أولًا.');return}
- let defs=uniq(extractDefs(fs),x=>x.term);
- let pool=defs.length?defs:fs.map((s,i)=>({term:'المفهوم '+(i+1),def:s,original:s}));
- let type=$('type').value,types=type==='mixed'?['mc','tf','fib','match']:[type],generated=[],seen=new Set();
- // Generate at most one question per concept and type before repeating.
- for(let pass=0;pass<types.length&&generated.length<n;pass++){
-   for(let i=0;i<pool.length&&generated.length<n;i++){
-     let p=pool[i],kind=types[(i+pass)%types.length],key=kind+'|'+p.term;
-     if(seen.has(key))continue;seen.add(key);
-     if(kind==='mc'){
-       let others=uniq(pool.filter(x=>x.term!==p.term&&x.def!==p.def),x=>x.def).slice(0,3).map(x=>x.def);
-       if(others.length<3)continue; // No fabricated distractors
-       let options=[p.def,...others],correct=(i+pass)%4;
-       options.splice(0,1);options.splice(correct,0,p.def);
-       generated.push({type:'mc',text:defs.length?'ما المقصود بـ «'+p.term+'»؟':'أي عبارة تصف المحتوى الوارد في المحاضرة؟',options,correct});
-     }else if(kind==='tf'){
-       let falseStmt=defs.length>1&&i%2===1,other=pool[(i+1)%pool.length];
-       generated.push({type:'tf',text:falseStmt?p.term+' هو '+other.def:p.original,options:['صح','خطأ'],correct:falseStmt?1:0});
-     }else if(kind==='fib'){
-       if(!defs.length)continue;
-       generated.push({type:'fib',text:'أكملي الفراغ: '+p.term+' هو _____',answer:p.def});
-     }else if(kind==='match'){
-       if(defs.length<2)continue;
-       let subset=[p,pool[(i+1)%pool.length]];
-       generated.push({type:'match',text:'صلي كل مفهوم بتعريفه الصحيح',pairs:subset.map(x=>({left:x.term,right:x.def}))});
-     }
+ let defs=uniq(extractDefs(fs),x=>x.term),type=$('type').value;
+ let types=type==='mixed'?['mc','tf','fib','match']:[type];
+ let generated=[],usedTexts=[],usedConcepts=new Set();
+ function push(q,concept){
+  if(generated.length>=n)return false;
+  if(usedTexts.some(t=>similar(t,q.text)))return false;
+  if(concept&&usedConcepts.has(normalize(concept)))return false;
+  generated.push(q);usedTexts.push(q.text);
+  if(concept)usedConcepts.add(normalize(concept));
+  return true;
+ }
+ // One primary question per definition; no repeated generic question stems.
+ for(let i=0;i<defs.length&&generated.length<n;i++){
+  let p=defs[i],kind=types[i%types.length];
+  if(kind==='mc'){
+   let alternatives=uniq(defs.filter(x=>normalize(x.term)!==normalize(p.term)&&normalize(x.def)!==normalize(p.def)),x=>x.def)
+    .filter(x=>!similar(x.def,p.def)).slice(0,3);
+   if(alternatives.length<3)kind='tf';
+   else{
+    let correct=i%4,options=alternatives.map(x=>x.def);options.splice(correct,0,p.def);
+    push({type:'mc',text:'ما المقصود بـ «'+p.term+'»؟',options,correct},p.term);
+    continue;
    }
+  }
+  if(kind==='tf'){
+   push({type:'tf',text:p.original,options:['صح','خطأ'],correct:0},p.term);
+  }else if(kind==='fib'){
+   push({type:'fib',text:'أكملي الفراغ: '+p.term+' هو _____',answer:p.def},p.term);
+  }else if(kind==='match'){
+   let other=defs.find(x=>normalize(x.term)!==normalize(p.term)&&!usedConcepts.has(normalize(x.term)));
+   if(other&&push({type:'match',text:'صلي المفاهيم التالية بتعريفاتها الصحيحة: '+p.term+' و'+other.term,
+    pairs:[{left:p.term,right:p.def},{left:other.term,right:other.def}]},p.term))usedConcepts.add(normalize(other.term));
+  }
+ }
+ // If definitions are scarce, create distinct true/false statements from source facts.
+ // Do not invent false claims or generic multiple-choice distractors.
+ if(types.includes('tf')){
+  for(let i=0;i<fs.length&&generated.length<n;i++){
+   let sentence=fs[i];
+   if(defs.some(d=>similar(d.original,sentence)))continue;
+   push({type:'tf',text:sentence,options:['صح','خطأ'],correct:0},null);
+  }
  }
  qs.splice(0,qs.length,...generated);render();
- let note='تم إنشاء '+qs.length+' سؤالًا مختلفًا مبدئيًا من أصل '+n+' مطلوبًا. راجعي الإجابات قبل الاستخدام.';
- if(qs.length<n)note+=' لم نُكمل العدد لتجنب التكرار أو اختراع خيارات خاطئة؛ أضيفي تعريفات أكثر أو اختاري نوعًا آخر.';
+ let note='تم إنشاء '+qs.length+' سؤالًا أوليًا من أصل '+n+' مطلوبًا. راجعي صحة العبارات والإجابات قبل الاستخدام.';
+ if(qs.length<n)note+=' لم نُكمل العدد لتجنب التكرار أو اختراع إجابات؛ أضيفي تعريفات واضحة أو اختاري صح وخطأ.';
+ if(!qs.length)note='لم أجد معلومات كافية لإنشاء أسئلة من النوع المختار. جربي صح وخطأ أو أضيفي تعريفات واضحة.';
  status(note);
  if(qs.length)$('questions').scrollIntoView({behavior:'smooth'});
 };
@@ -130,16 +165,16 @@ $('bb').onclick = () => {
       ' سؤال إكمال/توصيل من Blackboard TXT.';
   }
 };
-function giftEscape(s){return String(s).replace(/([~=#{}:\\\\])/g,'\\\\$1').replace(/[\\r\\n]+/g,' ')}
+function giftEscape(s){return String(s).replace(/([~=#{}:\\])/g,'\\$1').replace(/[\r\n]+/g,' ')}
 $('gift').onclick=()=>{
  if(!validate())return;
  let out=qs.map((q,i)=>{
  let stem='::سؤال '+(i+1)+'::'+giftEscape(q.text);
  if(q.type==='tf')return stem+' {'+(q.correct===0?'TRUE':'FALSE')+'}';
  if(q.type==='fib')return stem+' {='+giftEscape(q.answer)+'}';
- if(q.type==='match')return stem+' {\\n'+q.pairs.map(p=>'='+giftEscape(p.left)+' -> '+giftEscape(p.right)).join('\\n')+'\\n}';
- return stem+' {\\n'+q.options.map((o,j)=>(j===q.correct?'=':'~')+giftEscape(o)).join('\\n')+'\\n}';
- }).join('\\n\\n');
+ if(q.type==='match')return stem+' {\\n'+q.pairs.map(p=>'='+giftEscape(p.left)+' -> '+giftEscape(p.right)).join('\n')+'\\n}';
+ return stem+' {\\n'+q.options.map((o,j)=>(j===q.correct?'=':'~')+giftEscape(o)).join('\n')+'\\n}';
+ }).join('\n\n');
  download(safeName()+'_GIFT_unverified.txt',out);
  $('exportStatus').textContent+=' | توافق GIFT مع تقني غير مؤكد؛ اختبري الملف أولًا.';
 };
@@ -148,7 +183,7 @@ $('csv').onclick=()=>{
  if(!validate())return;
  let rows=[['type','question','option1','option2','option3','option4','correct_option','answer','matching_pairs','difficulty']];
  qs.forEach(q=>rows.push([q.type,q.text,...Array.from({length:4},(_,i)=>q.options?.[i]||''),q.type==='mc'||q.type==='tf'?q.correct+1:'',q.answer||'',q.type==='match'?JSON.stringify(q.pairs):'',$('difficulty').value]));
- download(safeName()+'_generic_unverified.csv',rows.map(r=>r.map(csvCell).join(',')).join('\\r\\n'),'text/csv;charset=utf-8');
+ download(safeName()+'_generic_unverified.csv',rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),'text/csv;charset=utf-8');
  $('exportStatus').textContent+=' | CSV عام وليس قالب استيراد رسمي لتقني.';
 };
 $('json').onclick=()=>{if(validate())download(safeName()+'_backup.json',JSON.stringify({course:$('course').value,source:$('source').value,questions:qs},null,2),'application/json')};
@@ -164,14 +199,14 @@ $('upload').onchange=async e=>{
  if(!window.pdfjsLib)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
  let pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
- for(let i=1;i<=pdf.numPages;i++){let page=await pdf.getPage(i),c=await page.getTextContent();t+='\\n'+c.items.map(x=>x.str).join(' ')}
+ for(let i=1;i<=pdf.numPages;i++){let page=await pdf.getPage(i),c=await page.getTextContent();t+='\n'+c.items.map(x=>x.str).join(' ')}
  }else if(ext==='docx'){
  if(!window.mammoth)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js');
  t=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
  }else if(ext==='pptx'){
  if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
  let zip= await JSZip.loadAsync(await f.arrayBuffer()), slides = Object.keys(zip.files).filter(x => /^ppt\/slides\/slide\d+\.xml$/.test(x)).sort((a, b) => Number(a.match(/slide(\d+)/)[1]) - Number(b.match(/slide(\d+)/)[1]));
- for(let slide of slides){let xml=await zip.file(slide).async('string'),doc=new DOMParser().parseFromString(xml,'application/xml');t+='\\n'+Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','t')).map(x=>x.textContent).join(' ')}
+ for(let slide of slides){let xml=await zip.file(slide).async('string'),doc=new DOMParser().parseFromString(xml,'application/xml');t+='\n'+Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','t')).map(x=>x.textContent).join(' ')}
  }else throw Error('نوع الملف غير مدعوم');
  $('source').value=t.trim();
  status(t.trim()?'تم استخراج '+t.length+' حرفًا من الملف. راجعي النص قبل إنشاء الأسئلة.':'لم يُستخرج نص. قد يكون الملف مصورًا أو خاليًا من النص القابل للقراءة.');
