@@ -89,8 +89,48 @@ function validate(items=qs){
  if(!ok){alert('راجعي السؤال رقم '+(qs.indexOf(q)+1)+' وأكملي بياناته.');return false}
  }return true;
 }
-const tabSafe=s=>String(s).replace(/[\\t\\r\\n]+/g,' ').trim();
-$('bb').onclick=()=>{
+
+const tabSafe = s => String(s ?? '')
+  .replace(/[\t\r\n]+/g, ' ')
+  .trim();
+
+$('bb').onclick = () => {
+  let eligible = qs.filter(q => q.type === 'mc' || q.type === 'tf');
+  let skipped = qs.length - eligible.length;
+
+  if (!validate(eligible)) return;
+
+  let lines = eligible.map(q => {
+    if (q.type === 'tf') {
+      return [
+        'TF',
+        tabSafe(q.text),
+        q.correct === 0 ? 'true' : 'false'
+      ].join('\t');
+    }
+
+    return [
+      'MC',
+      tabSafe(q.text),
+      ...q.options.flatMap((o, i) => [
+        tabSafe(o),
+        i === q.correct ? 'correct' : 'incorrect'
+      ])
+    ].join('\t');
+  });
+
+  download(
+    safeName() + '_Blackboard.txt',
+    lines.join('\r\n')
+  );
+
+  if (skipped) {
+    $('exportStatus').textContent +=
+      ' | تنبيه: تم استبعاد ' + skipped +
+      ' سؤال إكمال/توصيل من Blackboard TXT.';
+  }
+};
+=()=>{
  let eligible=qs.filter(q=>q.type==='mc'||q.type==='tf'),skipped=qs.length-eligible.length;
  if(!validate(eligible))return;
  let lines=eligible.map(q=>q.type==='tf'?['TF',tabSafe(q.text),q.correct===0?'true':'false'].join('\\t'):['MC',tabSafe(q.text),...q.options.flatMap((o,i)=>[tabSafe(o),i===q.correct?'correct':'incorrect'])].join('\\t'));
