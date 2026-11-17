@@ -137,7 +137,7 @@ $('upload').onchange=async e=>{
  t=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
  }else if(ext==='pptx'){
  if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
- let zip=await JSZip.loadAsync(await f.arrayBuffer()),slides=Object.keys(zip.files).filter(x=>/^ppt\\/slides\\/slide\\d+\\.xml$/.test(x)).sort((a,b)=>Number(a.match(/slide(\\d+)/)[1])-Number(b.match(/slide(\\d+)/)[1]));
+ let zip= await JSZip.loadAsync(await f.arrayBuffer()), slides = Object.keys(zip.files).filter(x => /^ppt\/slides\/slide\d+\.xml$/.test(x)).sort((a, b) => Number(a.match(/slide(\d+)/)[1]) - Number(b.match(/slide(\d+)/)[1]));
  for(let slide of slides){let xml=await zip.file(slide).async('string'),doc=new DOMParser().parseFromString(xml,'application/xml');t+='\\n'+Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','t')).map(x=>x.textContent).join(' ')}
  }else throw Error('نوع الملف غير مدعوم');
  $('source').value=t.trim();
