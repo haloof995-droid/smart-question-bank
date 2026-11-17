@@ -61,55 +61,95 @@ function similar(a,b){
  if(x.includes(y)||y.includes(x))return Math.min(x.length,y.length)/Math.max(x.length,y.length)>.82;
  return false;
 }
+function spreadAcross(items,limit){
+ // Sample across the entire lecture instead of always starting at the beginning.
+ if(items.length<=limit)return items.slice();
+ let picked=[],seen=new Set();
+ for(let i=0;i<limit;i++){
+  let index=Math.min(items.length-1,Math.floor((i+.5)*items.length/limit));
+  if(!seen.has(index)){picked.push(items[index]);seen.add(index)}
+ }
+ return picked;
+}
+function topicKey(s){
+ let stop=new Set(['الذي','التي','على','إلى','الى','من','في','عن','عند','هذه','هذا','تلك','ذلك','يتم','يمكن','تستخدم','استخدام','وهي','وهو','حيث','التي','النظام','البرنامج','الملفات','البرامج']);
+ let words=clean(s).replace(/[^\p{L}\p{N} ]/gu,' ').split(/\s+/).map(normalize).filter(x=>x.length>3&&!stop.has(x));
+ return words.slice(0,3).join('|');
+}
+function topicGroup(s){
+ let t=normalize(s);
+ const groups=[
+  ['الوسائط المتعددة وأنواعها',/وسائط|تفاعلي|تفاعليه|غيرخطي|خطي|hypermedia|وسائطالفائقه/],
+  ['تطبيقات الوسائط',/تطبيقات|زووم|zoom|تراسل|بريدالكتروني|سمعي|بصري|مصرفي/],
+  ['الفأرة',/فاره|ماوس|mouse|نقر|سحب|افلات|click|drag/],
+  ['سطح المكتب',/سطحمكتب|شريطمهام|taskbar|ايقون|icon|زرابدا|start|مجلد|folder/],
+  ['ماكنتوش',/ماكنتوش|ماك|macintosh|macos|apple|dock|finder|مرسى/],
+  ['ويندوز',/ويندوز|windows|نوافذ|لوحهتحكم|controlpanel/],
+  ['دوس',/دوس|dos|غيررسومي|نصوصفقط|قرص/],
+ ];
+ for(let [name,re] of groups)if(re.test(t))return name;
+ return 'موضوعات أخرى';
+}
+function roundRobinTopics(items){
+ let groups=new Map();
+ for(let item of items){let k=topicGroup(item.original||item.term||item);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(item)}
+ let out=[],buckets=[...groups.values()];
+ while(buckets.some(a=>a.length))for(let bucket of buckets)if(bucket.length)out.push(bucket.shift());
+ return {items:out,count:groups.size};
+}
 $('generate').onclick=()=>{
  let fs=facts($('source').value),n=Math.min(100,Math.max(1,Number($('count').value)||10));
  if(!fs.length){alert('أضيفي نص محاضرة يحتوي على جمل واضحة أولًا.');return}
  let defs=uniq(extractDefs(fs),x=>x.term),type=$('type').value;
  let types=type==='mixed'?['mc','tf','fib','match']:[type];
- let generated=[],usedTexts=[],usedConcepts=new Set();
- function push(q,concept){
-  if(generated.length>=n)return false;
-  if(usedTexts.some(t=>similar(t,q.text)))return false;
+ let generated=[],usedTexts=[],usedConcepts=new Set(),topicCounts=new Map();
+ const maxPerTopic=Math.max(2,Math.ceil(n/Math.max(1,roundRobinTopics(fs).count)));
+ function push(q,concept,source){
+  if(generated.length>=n||usedTexts.some(t=>similar(t,q.text)))return false;
   if(concept&&usedConcepts.has(normalize(concept)))return false;
+  let key=topicGroup(source||concept||q.text);
+  if((topicCounts.get(key)||0)>=maxPerTopic)return false;
   generated.push(q);usedTexts.push(q.text);
+  topicCounts.set(key,(topicCounts.get(key)||0)+1);
   if(concept)usedConcepts.add(normalize(concept));
   return true;
  }
- // One primary question per definition; no repeated generic question stems.
- for(let i=0;i<defs.length&&generated.length<n;i++){
-  let p=defs[i],kind=types[i%types.length];
-  if(kind==='mc'){
-   let alternatives=uniq(defs.filter(x=>normalize(x.term)!==normalize(p.term)&&normalize(x.def)!==normalize(p.def)),x=>x.def)
-    .filter(x=>!similar(x.def,p.def)).slice(0,3);
-   if(alternatives.length<3)kind='tf';
-   else{
-    let correct=i%4,options=alternatives.map(x=>x.def);options.splice(correct,0,p.def);
-    push({type:'mc',text:'ما المقصود بـ «'+p.term+'»؟',options,correct},p.term);
-    continue;
+ let selected=roundRobinTopics(defs).items;
+ // Distribute candidate concepts across detected subjects, not page order.
+ for(let pass=0;pass<types.length&&generated.length<n;pass++){
+  for(let i=0;i<selected.length&&generated.length<n;i++){
+   let p=selected[i],kind=types[(i+pass)%types.length];
+   if(usedConcepts.has(normalize(p.term)))continue;
+   if(kind==='mc'){
+    let alternatives=uniq(defs.filter(x=>normalize(x.term)!==normalize(p.term)&&normalize(x.def)!==normalize(p.def)),x=>x.def)
+     .filter(x=>!similar(x.def,p.def)&&topicGroup(x.original)!==topicGroup(p.original));
+    if(alternatives.length<3)alternatives=uniq(defs.filter(x=>normalize(x.term)!==normalize(p.term)&&!similar(x.def,p.def)),x=>x.def);
+    alternatives=spreadAcross(alternatives,3);
+    if(alternatives.length<3)continue;
+    let correct=(i+pass)%4,options=alternatives.map(x=>x.def);options.splice(correct,0,p.def);
+    push({type:'mc',text:'ما المقصود بـ «'+p.term+'»؟',options,correct},p.term,p.original);
+   }else if(kind==='tf'){
+    push({type:'tf',text:p.original,options:['صح','خطأ'],correct:0},p.term,p.original);
+   }else if(kind==='fib'){
+    push({type:'fib',text:'أكملي الفراغ: '+p.term+' هو _____',answer:p.def},p.term,p.original);
+   }else if(kind==='match'){
+    let other=selected.find(x=>normalize(x.term)!==normalize(p.term)&&!usedConcepts.has(normalize(x.term))&&topicGroup(x.original)===topicGroup(p.original));
+    if(other&&push({type:'match',text:'صلي المفاهيم التالية بتعريفاتها الصحيحة: '+p.term+' و'+other.term,pairs:[{left:p.term,right:p.def},{left:other.term,right:other.def}]},p.term,p.original))usedConcepts.add(normalize(other.term));
    }
   }
-  if(kind==='tf'){
-   push({type:'tf',text:p.original,options:['صح','خطأ'],correct:0},p.term);
-  }else if(kind==='fib'){
-   push({type:'fib',text:'أكملي الفراغ: '+p.term+' هو _____',answer:p.def},p.term);
-  }else if(kind==='match'){
-   let other=defs.find(x=>normalize(x.term)!==normalize(p.term)&&!usedConcepts.has(normalize(x.term)));
-   if(other&&push({type:'match',text:'صلي المفاهيم التالية بتعريفاتها الصحيحة: '+p.term+' و'+other.term,
-    pairs:[{left:p.term,right:p.def},{left:other.term,right:other.def}]},p.term))usedConcepts.add(normalize(other.term));
-  }
  }
- // If definitions are scarce, create distinct true/false statements from source facts.
- // Do not invent false claims or generic multiple-choice distractors.
+ // Add supported true/false statements from underrepresented subjects.
  if(types.includes('tf')){
-  for(let i=0;i<fs.length&&generated.length<n;i++){
-   let sentence=fs[i];
-   if(defs.some(d=>similar(d.original,sentence)))continue;
-   push({type:'tf',text:sentence,options:['صح','خطأ'],correct:0},null);
+  let candidates=roundRobinTopics(fs.filter(sentence=>!defs.some(d=>similar(d.original,sentence)))).items;
+  for(let sentence of candidates){
+   if(generated.length>=n)break;
+   push({type:'tf',text:sentence,options:['صح','خطأ'],correct:0},null,sentence);
   }
  }
  qs.splice(0,qs.length,...generated);render();
- let note='تم إنشاء '+qs.length+' سؤالًا أوليًا من أصل '+n+' مطلوبًا. راجعي صحة العبارات والإجابات قبل الاستخدام.';
- if(qs.length<n)note+=' لم نُكمل العدد لتجنب التكرار أو اختراع إجابات؛ أضيفي تعريفات واضحة أو اختاري صح وخطأ.';
+ let distribution=[...topicCounts].map(([k,v])=>k+': '+v).join('، ');
+ let note='تم إنشاء '+qs.length+' سؤالًا أوليًا من أصل '+n+' مطلوبًا. توزيع الموضوعات: '+distribution+'. راجعي الأسئلة والإجابات قبل الاستخدام.';
+ if(qs.length<n)note+=' لم نُكمل العدد لتجنب تكرار موضوع واحد أو إنشاء إجابات غير موثوقة.';
  if(!qs.length)note='لم أجد معلومات كافية لإنشاء أسئلة من النوع المختار. جربي صح وخطأ أو أضيفي تعريفات واضحة.';
  status(note);
  if(qs.length)$('questions').scrollIntoView({behavior:'smooth'});
@@ -199,7 +239,7 @@ $('upload').onchange=async e=>{
  if(!window.pdfjsLib)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
  let pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
- for(let i=1;i<=pdf.numPages;i++){let page=await pdf.getPage(i),c=await page.getTextContent();t+='\n'+c.items.map(x=>x.str).join(' ')}
+ for(let i=1;i<=pdf.numPages;i++){let page=await pdf.getPage(i),c=await page.getTextContent();t+='\n\n'+c.items.map(x=>x.str).join(' ')+'\n'}
  }else if(ext==='docx'){
  if(!window.mammoth)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js');
  t=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
