@@ -129,14 +129,7 @@ $('bb').onclick = () => {
       ' | تنبيه: تم استبعاد ' + skipped +
       ' سؤال إكمال/توصيل من Blackboard TXT.';
   }
-};
-=()=>{
- let eligible=qs.filter(q=>q.type==='mc'||q.type==='tf'),skipped=qs.length-eligible.length;
- if(!validate(eligible))return;
- let lines=eligible.map(q=>q.type==='tf'?['TF',tabSafe(q.text),q.correct===0?'true':'false'].join('\\t'):['MC',tabSafe(q.text),...q.options.flatMap((o,i)=>[tabSafe(o),i===q.correct?'correct':'incorrect'])].join('\\t'));
- download(safeName()+'_Blackboard.txt',lines.join('\\r\\n'));
- if(skipped)$('exportStatus').textContent+=' | تنبيه: تم استبعاد '+skipped+' سؤال إكمال/توصيل من Blackboard TXT؛ استخدمي GIFT أو CSV لحفظها.';
-};
+
 function giftEscape(s){return String(s).replace(/([~=#{}:\\\\])/g,'\\\\$1').replace(/[\\r\\n]+/g,' ')}
 $('gift').onclick=()=>{
  if(!validate())return;
